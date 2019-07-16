@@ -13,8 +13,10 @@ resource "aws_launch_template" "default" {
   count = var.enabled ? 1 : 0
 
   name_prefix = format("%s%s", module.label.id, var.delimiter)
+
   dynamic "block_device_mappings" {
-    for_each = [var.block_device_mappings]
+    for_each = var.block_device_mappings
+
     content {
       device_name  = lookup(block_device_mappings.value, "device_name", null)
       no_device    = lookup(block_device_mappings.value, "no_device", null)
@@ -22,20 +24,23 @@ resource "aws_launch_template" "default" {
 
       dynamic "ebs" {
         for_each = lookup(block_device_mappings.value, "ebs", [])
+
         content {
-          delete_on_termination = lookup(ebs.value, "delete_on_termination", null)
-          encrypted             = lookup(ebs.value, "encrypted", null)
-          iops                  = lookup(ebs.value, "iops", null)
-          kms_key_id            = lookup(ebs.value, "kms_key_id", null)
-          snapshot_id           = lookup(ebs.value, "snapshot_id", null)
-          volume_size           = lookup(ebs.value, "volume_size", null)
-          volume_type           = lookup(ebs.value, "volume_type", null)
+          delete_on_termination = lookup(merge(ebs.value), "delete_on_termination", null)
+          encrypted             = lookup(merge(ebs.value), "encrypted", null)
+          iops                  = lookup(merge(ebs.value), "iops", null)
+          kms_key_id            = lookup(merge(ebs.value), "kms_key_id", null)
+          snapshot_id           = lookup(merge(ebs.value), "snapshot_id", null)
+          volume_size           = lookup(merge(ebs.value), "volume_size", null)
+          volume_type           = lookup(merge(ebs.value), "volume_type", null)
         }
       }
     }
   }
+
   dynamic "credit_specification" {
-    for_each = [var.credit_specification]
+    for_each = var.credit_specification
+
     content {
       cpu_credits = lookup(credit_specification.value, "cpu_credits", null)
     }
@@ -44,7 +49,7 @@ resource "aws_launch_template" "default" {
   ebs_optimized           = var.ebs_optimized
 
   dynamic "elastic_gpu_specifications" {
-    for_each = [var.elastic_gpu_specifications]
+    for_each = var.elastic_gpu_specifications
 
     content {
       type = elastic_gpu_specifications.value.type
@@ -55,7 +60,7 @@ resource "aws_launch_template" "default" {
   instance_initiated_shutdown_behavior = var.instance_initiated_shutdown_behavior
 
   dynamic "instance_market_options" {
-    for_each = [var.instance_market_options]
+    for_each = var.instance_market_options
 
     content {
       market_type = lookup(instance_market_options.value, "market_type", null)
@@ -64,11 +69,11 @@ resource "aws_launch_template" "default" {
         for_each = lookup(instance_market_options.value, "spot_options", [])
 
         content {
-          block_duration_minutes         = lookup(spot_options.value, "block_duration_minutes", null)
-          instance_interruption_behavior = lookup(spot_options.value, "instance_interruption_behavior", null)
-          max_price                      = lookup(spot_options.value, "max_price", null)
-          spot_instance_type             = lookup(spot_options.value, "spot_instance_type", null)
-          valid_until                    = lookup(spot_options.value, "valid_until", null)
+          block_duration_minutes         = lookup(merge(spot_options.value), "block_duration_minutes", null)
+          instance_interruption_behavior = lookup(merge(spot_options.value), "instance_interruption_behavior", null)
+          max_price                      = lookup(merge(spot_options.value), "max_price", null)
+          spot_instance_type             = lookup(merge(spot_options.value), "spot_instance_type", null)
+          valid_until                    = lookup(merge(spot_options.value), "valid_until", null)
         }
       }
     }
@@ -77,7 +82,7 @@ resource "aws_launch_template" "default" {
   key_name      = var.key_name
 
   dynamic "placement" {
-    for_each = [var.placement]
+    for_each = var.placement
 
     content {
       affinity          = lookup(placement.value, "affinity", null)
